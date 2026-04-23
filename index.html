@@ -83,14 +83,44 @@ body {
   overflow:hidden;
   transition: none;
 }
-.spread.slide-enter-right { animation: slideInR .55s cubic-bezier(.4,0,.2,1) forwards; }
-.spread.slide-enter-left  { animation: slideInL .55s cubic-bezier(.4,0,.2,1) forwards; }
-.spread.slide-exit-left   { animation: slideOutL .55s cubic-bezier(.4,0,.2,1) forwards; }
-.spread.slide-exit-right  { animation: slideOutR .55s cubic-bezier(.4,0,.2,1) forwards; }
-@keyframes slideInR  { from{transform:translateX(6%);opacity:.2} to{transform:translateX(0);opacity:1} }
-@keyframes slideInL  { from{transform:translateX(-6%);opacity:.2} to{transform:translateX(0);opacity:1} }
-@keyframes slideOutL { from{transform:translateX(0);opacity:1} to{transform:translateX(-6%);opacity:.2} }
-@keyframes slideOutR { from{transform:translateX(0);opacity:1} to{transform:translateX(6%);opacity:.2} }
+/* Page flip 3D */
+.book-wrap { perspective: 2800px; }
+.flip-page {
+  position: absolute; top: 0; width: 50%; height: 100%;
+  z-index: 40; transform-style: preserve-3d;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(.33,.07,.4,.97);
+  animation-duration: .95s;
+  pointer-events: none;
+}
+.flip-face {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  background: var(--cream);
+  background-image: repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(160,130,80,.07) 27px,rgba(160,130,80,.07) 28px);
+}
+.flip-page.fwd {
+  right: 0; transform-origin: left center;
+  animation-name: flipFwd;
+}
+.flip-page.back {
+  left: 0; transform-origin: right center;
+  animation-name: flipBack;
+}
+.flip-face.front-fwd { box-shadow: inset -20px 0 30px -20px rgba(0,0,0,.25); }
+.flip-face.back-fwd { transform: rotateY(180deg); box-shadow: inset 20px 0 30px -20px rgba(0,0,0,.25); }
+.flip-face.front-back { box-shadow: inset 20px 0 30px -20px rgba(0,0,0,.25); }
+.flip-face.back-back { transform: rotateY(-180deg); box-shadow: inset -20px 0 30px -20px rgba(0,0,0,.25); }
+
+@keyframes flipFwd {
+  0%   { transform: rotateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  40%  { box-shadow: -30px 10px 50px rgba(0,0,0,.35); }
+  100% { transform: rotateY(-180deg); box-shadow: -15px 10px 30px rgba(0,0,0,.15); }
+}
+@keyframes flipBack {
+  0%   { transform: rotateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  40%  { box-shadow: 30px 10px 50px rgba(0,0,0,.35); }
+  100% { transform: rotateY(180deg); box-shadow: 15px 10px 30px rgba(0,0,0,.15); }
+}
 
 /* Spine */
 .book::after {
@@ -367,6 +397,9 @@ body {
 
 
 
+
+
+
 const { useState, useEffect, useRef, useCallback } = React;
 
 const LS = 'romantic_album_v3';
@@ -483,7 +516,7 @@ function DaysCounter({ startDate }) {
   }, [startDate]);
   return (
     <div className="days-pill" style={{ width: "120.391px", height: "39px" }}>
-      <div className="days-num">{count}</div>
+      <div className="days-num" style={{ height: "48px", width: "51px", letterSpacing: "-0.2px", fontWeight: "300", padding: "9px 0px 0px" }}>{count}</div>
       <div className="days-label" style={{ textAlign: "center", padding: "0px", width: "93px", margin: "-8px 0px 0px" }}>{isFuture ? 'días para ✦' : 'días juntos'}</div>
     </div>);
 
@@ -682,6 +715,7 @@ function Album() {
   const [captions, setCaptions] = useState(saved.captions || ['', '']);
   const [secrets, setSecrets] = useState(saved.secrets || {});
   const [spread, setSpread] = useState(saved.spread || 0);
+  const [prevSpread, setPrevSpread] = useState(saved.spread || 0);
   const [dir, setDir] = useState('right'); // slide direction
   const [animKey, setAnimKey] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
@@ -718,9 +752,12 @@ function Album() {
     const next = spread + delta;
     if (next < 0 || next >= totalSpreads) return;
     setDir(delta > 0 ? 'right' : 'left');
+    setPrevSpread(spread);
     setTransitioning(true);
     setAnimKey((k) => k + 1);
-    setTimeout(() => {setSpread(next);setTransitioning(false);}, 520);
+    // Swap underlying spread at the midpoint (flip edge-on, invisible)
+    setTimeout(() => {setSpread(next);}, 475);
+    setTimeout(() => {setTransitioning(false);}, 950);
   }, [spread, totalSpreads, transitioning]);
 
   useEffect(() => {
@@ -850,9 +887,23 @@ function Album() {
           }}>
           <DaysCounter startDate={startD} />
         </div>
-          <div key={animKey} className={`spread ${enterClass}`} style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+          <div className="spread" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
             {renderSpread(spread)}
           </div>
+          {transitioning &&
+          <div key={animKey} className={`flip-page ${dir === 'right' ? 'fwd' : 'back'}`}>
+              <div className={`flip-face ${dir === 'right' ? 'front-fwd' : 'front-back'}`} style={{ overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, height: '100%', width: '200%', display: 'flex', [dir === 'right' ? 'right' : 'left']: 0 }}>
+                  {renderSpread(prevSpread)}
+                </div>
+              </div>
+              <div className={`flip-face ${dir === 'right' ? 'back-fwd' : 'back-back'}`} style={{ overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, height: '100%', width: '200%', display: 'flex', [dir === 'right' ? 'left' : 'right']: 0 }}>
+                  {renderSpread(spread)}
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </div>
 
