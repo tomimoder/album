@@ -406,7 +406,7 @@ const LS = 'romantic_album_v3';
 const DEFAULTS = /*EDITMODE-BEGIN*/{
   "albumTitle": "Un poco de nosotros",
   "coupleNames": "Sofía & Tomás",
-  "specialDate": "13 de Septiembre 2026",
+  "specialDate": "13 de Septiembre 2024",
   "startDate": "2024-09-13"
 } /*EDITMODE-END*/;
 
@@ -508,7 +508,7 @@ function DaysCounter({ startDate }) {
   const [count, setCount] = useState(0);
   const [isFuture, setIsFuture] = useState(false);
   useEffect(() => {
-    const start = new Date(startDate);
+    const start = new Date(startDate + 'T00:00:00');
     const now = new Date();
     const diff = Math.floor((now - start) / 86400000);
     if (diff < 0) {setIsFuture(true);setCount(Math.abs(diff));} else
