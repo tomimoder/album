@@ -323,7 +323,11 @@ function DaysCounter({startDate}){
 }
 
 function CinnaDeco({size=55,style={}}){
-  return <div style={{width:size,height:size,...style,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.6,opacity:0.7}}>☁️</div>;
+  return <img src="uploads/pngwing.com (1).png" style={{width:size,height:size,objectFit:'contain',pointerEvents:'none',...style}} alt=""/>;
+}
+
+function HpDeco({size=80,style={}}){
+  return <img src="uploads/pngwing.com.png" style={{width:size,height:size,objectFit:'contain',pointerEvents:'none',...style}} alt=""/>;
 }
 
 function HiddenMessageOverlay({message,onSave,onClose}){
@@ -341,19 +345,31 @@ function HiddenMessageOverlay({message,onSave,onClose}){
 
 function CoverSpread({title,names,date}){
   return <div className="spread">
-    <div className="page page-left cover-left">
-      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16,position:'relative'}}>
-        <div style={{fontSize:120,opacity:0.3}}>⚡</div>
+    <div className="page page-left cover-left" style={{background:'linear-gradient(145deg,#080c1c,#101a30)'}}>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',gap:16,position:'relative',zIndex:3}}>
+        <HpDeco size={220} style={{objectFit:'contain'}}/>
+        <div style={{position:'absolute',top:24,left:24,fontSize:12,color:'rgba(212,168,67,.4)'}}>⚡</div>
+        <div style={{position:'absolute',top:24,right:28,fontSize:10,color:'rgba(212,168,67,.3)'}}>✦</div>
+        <div style={{position:'absolute',bottom:24,left:24,fontSize:10,color:'rgba(212,168,67,.3)'}}>✦</div>
+        <div style={{position:'absolute',bottom:24,right:28,fontSize:12,color:'rgba(212,168,67,.35)'}}>⚡</div>
       </div>
     </div>
     <div className="page page-right cover-right">
       <div className="cover-border"/>
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',opacity:.04,zIndex:1}}>
+        <path d="M200 60 L155 200 L185 200 L140 340 L260 180 L225 180 L270 60Z" fill="white"/>
+      </svg>
       <div style={{position:'relative',zIndex:2,display:'flex',flexDirection:'column',alignItems:'center'}}>
-        <CinnaDeco size={100}/>
+        <CinnaDeco size={130}/>
         <div className="cover-title">{title}</div>
         <div className="cover-divider"/>
         <div className="cover-names">{names}</div>
         <div className="cover-date">{date}</div>
+        <div style={{marginTop:18,display:'flex',gap:10,alignItems:'center'}}>
+          {['✦','♡','✦'].map((s,i)=>
+            <span key={i} style={{color:i===1?'rgba(245,194,203,.55)':'rgba(168,216,240,.45)',fontSize:i===1?16:10}}>{s}</span>
+          )}
+        </div>
       </div>
     </div>
   </div>;
