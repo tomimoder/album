@@ -5,9 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Un poco de nosotros ✨</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<!-- Firebase SDK (modular, vía CDN) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getFirestore, collection, doc, onSnapshot, setDoc, updateDoc,
+    deleteDoc, addDoc, query, orderBy, serverTimestamp, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  // ====== CONFIG ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCWuru-1ZxHJG8kBIvYrJKLjxVqHXM9ZA",
+    authDomain: "album-sofia-tomas.firebaseapp.com",
+    projectId: "album-sofia-tomas",
+    storageBucket: "album-sofia-tomas.firebasestorage.app",
+    messagingSenderId: "385628522840",
+    appId: "1:385628522840:web:40129ec434fe549de37d2d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Exponer en window para que el código React (Babel inline) lo use
+  window.__fb = {
+    db, collection, doc, onSnapshot, setDoc, updateDoc,
+    deleteDoc, addDoc, query, orderBy, serverTimestamp, getDoc
+  };
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
+
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -27,26 +57,20 @@ body {
 }
 
 /* ═══ MARAUDER MAP BG ═══ */
-.map-bg {
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  overflow: hidden;
-}
+.map-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .map-bg svg { width: 100%; height: 100%; }
 .footstep {
-  position: fixed;
-  width: 5px; height: 3px; border-radius: 50%;
-  background: rgba(180,140,60,0.5);
-  pointer-events: none; z-index: 1;
+  position: fixed; width: 5px; height: 3px; border-radius: 50%;
+  background: rgba(180,140,60,0.5); pointer-events: none; z-index: 1;
   animation: walkFade var(--dur,6s) ease-in-out infinite var(--del,0s);
 }
 @keyframes walkFade {
-  0%   { opacity:0; transform:translate(0,0) scale(0.5); }
-  15%  { opacity:0.9; transform:translate(0,0) scale(1); }
-  85%  { opacity:0.6; transform:translate(var(--tx,40px),var(--ty,20px)) scale(1); }
+  0% { opacity:0; transform:translate(0,0) scale(0.5); }
+  15% { opacity:0.9; transform:translate(0,0) scale(1); }
+  85% { opacity:0.6; transform:translate(var(--tx,40px),var(--ty,20px)) scale(1); }
   100% { opacity:0; transform:translate(var(--tx,40px),var(--ty,20px)) scale(0.5); }
 }
 
-/* ═══ PARTICLES ═══ */
 .particles { position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
 .particle {
   position:absolute;
@@ -54,75 +78,51 @@ body {
   font-size:var(--sz,14px); opacity:0;
 }
 @keyframes floatUp {
-  0%   { transform:translateY(105vh) rotate(0deg); opacity:0; }
-  8%   { opacity:.7; }
-  92%  { opacity:.5; }
+  0% { transform:translateY(105vh) rotate(0deg); opacity:0; }
+  8% { opacity:.7; }
+  92% { opacity:.5; }
   100% { transform:translateY(-5vh) rotate(360deg); opacity:0; }
 }
 
-/* ═══ SCENE ═══ */
-.scene {
-  position:relative; z-index:2;
-  display:flex; flex-direction:column; align-items:center; gap:18px;
-}
+.scene { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:18px; }
 
-/* ═══ BOOK ═══ */
-.book-wrap { position:relative; }
+.book-wrap { position:relative; perspective: 2800px; }
 .book {
-  width:900px; height:580px;
-  position:relative;
-  filter: drop-shadow(0 30px 70px rgba(0,0,0,.85))
-          drop-shadow(0 0 40px rgba(168,90,30,.15));
+  width:900px; height:580px; position:relative;
+  filter: drop-shadow(0 30px 70px rgba(0,0,0,.85)) drop-shadow(0 0 40px rgba(168,90,30,.15));
 }
+.spread { position:absolute; inset:0; display:flex; border-radius:3px 10px 10px 3px; overflow:hidden; }
 
-/* ═══ SPREAD ═══ */
-.spread {
-  position:absolute; inset:0;
-  display:flex;
-  border-radius:3px 10px 10px 3px;
-  overflow:hidden;
-  transition: none;
-}
-/* Page flip 3D */
-.book-wrap { perspective: 2800px; }
 .flip-page {
   position: absolute; top: 0; width: 50%; height: 100%;
   z-index: 40; transform-style: preserve-3d;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(.33,.07,.4,.97);
-  animation-duration: .95s;
-  pointer-events: none;
+  animation-duration: .95s; pointer-events: none;
 }
 .flip-face {
   position: absolute; inset: 0; backface-visibility: hidden;
   background: var(--cream);
   background-image: repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(160,130,80,.07) 27px,rgba(160,130,80,.07) 28px);
 }
-.flip-page.fwd {
-  right: 0; transform-origin: left center;
-  animation-name: flipFwd;
-}
-.flip-page.back {
-  left: 0; transform-origin: right center;
-  animation-name: flipBack;
-}
+.flip-page.fwd { right: 0; transform-origin: left center; animation-name: flipFwd; }
+.flip-page.back { left: 0; transform-origin: right center; animation-name: flipBack; }
 .flip-face.front-fwd { box-shadow: inset -20px 0 30px -20px rgba(0,0,0,.25); }
 .flip-face.back-fwd { transform: rotateY(180deg); box-shadow: inset 20px 0 30px -20px rgba(0,0,0,.25); }
 .flip-face.front-back { box-shadow: inset 20px 0 30px -20px rgba(0,0,0,.25); }
 .flip-face.back-back { transform: rotateY(-180deg); box-shadow: inset -20px 0 30px -20px rgba(0,0,0,.25); }
 
 @keyframes flipFwd {
-  0%   { transform: rotateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  40%  { box-shadow: -30px 10px 50px rgba(0,0,0,.35); }
+  0% { transform: rotateY(0); }
+  40% { box-shadow: -30px 10px 50px rgba(0,0,0,.35); }
   100% { transform: rotateY(-180deg); box-shadow: -15px 10px 30px rgba(0,0,0,.15); }
 }
 @keyframes flipBack {
-  0%   { transform: rotateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  40%  { box-shadow: 30px 10px 50px rgba(0,0,0,.35); }
+  0% { transform: rotateY(0); }
+  40% { box-shadow: 30px 10px 50px rgba(0,0,0,.35); }
   100% { transform: rotateY(180deg); box-shadow: 15px 10px 30px rgba(0,0,0,.15); }
 }
 
-/* Spine */
 .book::after {
   content:''; position:absolute; left:50%; top:0; bottom:0;
   width:18px; transform:translateX(-50%);
@@ -130,622 +130,359 @@ body {
   z-index:20; box-shadow:0 0 12px rgba(0,0,0,.7);
 }
 
-/* ═══ PAGES ═══ */
-.page {
-  flex:1; position:relative; overflow:hidden;
-  background:var(--cream);
-}
-.page::before { /* line texture */
+.page { flex:1; position:relative; overflow:hidden; background:var(--cream); }
+.page::before {
   content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(160,130,80,.07) 27px,rgba(160,130,80,.07) 28px);
 }
-.page-left::after {
-  content:''; position:absolute; top:0; right:0; bottom:0; width:50px;
-  background:linear-gradient(to left,rgba(0,0,0,.1),transparent);
-  z-index:2; pointer-events:none;
-}
-.page-right::after {
-  content:''; position:absolute; top:0; left:0; bottom:0; width:50px;
-  background:linear-gradient(to right,rgba(0,0,0,.08),transparent);
-  z-index:2; pointer-events:none;
-}
+.page-left::after { content:''; position:absolute; top:0; right:0; bottom:0; width:50px; background:linear-gradient(to left,rgba(0,0,0,.1),transparent); z-index:2; pointer-events:none; }
+.page-right::after { content:''; position:absolute; top:0; left:0; bottom:0; width:50px; background:linear-gradient(to right,rgba(0,0,0,.08),transparent); z-index:2; pointer-events:none; }
 
-/* ═══ COVER ═══ */
-.cover-left {
-  background:linear-gradient(145deg,#0a0d1e 0%,#111830 100%);
-  display:flex; align-items:center; justify-content:center;
-  padding:24px;
-}
-.cover-right {
-  background:linear-gradient(145deg,var(--burgundy) 0%,#3a0818 55%,#0d0820 100%);
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:36px; position:relative; overflow:hidden;
-}
-.cover-border {
-  position:absolute; inset:14px;
-  border:1.5px solid rgba(212,168,67,.45); border-radius:3px; pointer-events:none;
-}
-.cover-border::before {
-  content:''; position:absolute; inset:6px;
-  border:1px solid rgba(212,168,67,.25); border-radius:2px;
-}
-.cover-title {
-  font-family:'Cinzel',serif; color:var(--gold-light);
-  font-size:26px; text-align:center; line-height:1.4;
-  text-shadow:0 0 24px rgba(212,168,67,.55);
-  position:relative; z-index:2;
-}
-.cover-names {
-  font-family:'Cinzel',serif; color:var(--cinna-pink);
-  font-size:17px; margin-top:14px;
-  text-shadow:0 0 14px rgba(245,194,203,.5);
-  position:relative; z-index:2;
-}
-.cover-date {
-  font-family:'Quicksand',sans-serif; color:rgba(212,168,67,.65);
-  font-size:12px; margin-top:10px; letter-spacing:2px;
-  position:relative; z-index:2;
-}
-.cover-divider {
-  width:56px; height:1.5px; margin:14px auto;
-  background:linear-gradient(to right,transparent,var(--gold),transparent);
-  position:relative; z-index:2;
-}
+.cover-left { background:linear-gradient(145deg,#0a0d1e 0%,#111830 100%); display:flex; align-items:center; justify-content:center; padding:24px; }
+.cover-right { background:linear-gradient(145deg,var(--burgundy) 0%,#3a0818 55%,#0d0820 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:36px; position:relative; overflow:hidden; }
+.cover-border { position:absolute; inset:14px; border:1.5px solid rgba(212,168,67,.45); border-radius:3px; pointer-events:none; }
+.cover-border::before { content:''; position:absolute; inset:6px; border:1px solid rgba(212,168,67,.25); border-radius:2px; }
+.cover-title { font-family:'Cinzel',serif; color:var(--gold-light); font-size:26px; text-align:center; line-height:1.4; text-shadow:0 0 24px rgba(212,168,67,.55); position:relative; z-index:2; }
+.cover-names { font-family:'Cinzel',serif; color:var(--cinna-pink); font-size:17px; margin-top:14px; text-shadow:0 0 14px rgba(245,194,203,.5); position:relative; z-index:2; }
+.cover-date { font-family:'Quicksand',sans-serif; color:rgba(212,168,67,.65); font-size:12px; margin-top:10px; letter-spacing:2px; position:relative; z-index:2; }
+.cover-divider { width:56px; height:1.5px; margin:14px auto; background:linear-gradient(to right,transparent,var(--gold),transparent); position:relative; z-index:2; }
 
-/* Days counter pill */
 .days-pill {
-  background:rgba(8,4,18,.88);
-  border:1.5px solid rgba(212,168,67,.5);
-  border-top: none;
-  border-radius:0 0 20px 20px;
-  padding:8px 22px 10px;
+  background:rgba(8,4,18,.88); border:1.5px solid rgba(212,168,67,.5);
+  border-top: none; border-radius:0 0 20px 20px; padding:8px 22px 10px;
   display:flex; flex-direction:column; align-items:center;
-  backdrop-filter:blur(10px);
-  box-shadow:0 4px 24px rgba(0,0,0,.7), 0 0 20px rgba(212,168,67,.1);
+  backdrop-filter:blur(10px); box-shadow:0 4px 24px rgba(0,0,0,.7), 0 0 20px rgba(212,168,67,.1);
 }
-.days-num {
-  font-family:'Cinzel',serif; font-size:26px;
-  color:var(--cinna-blue); line-height:1;
-  text-shadow: 0 0 12px rgba(168,216,240,.6);
-}
-.days-label {
-  font-size:9px; color:rgba(168,216,240,.65);
-  letter-spacing:2px; text-transform:uppercase; margin-top:3px;
-}
+.days-num { font-family:'Cinzel',serif; font-size:26px; color:var(--cinna-blue); line-height:1; text-shadow: 0 0 12px rgba(168,216,240,.6); }
+.days-label { font-size:9px; color:rgba(168,216,240,.65); letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
 
-/* ═══ PHOTO AREA ═══ */
-.photo-area {
-  position:relative; z-index:3;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  width:100%; height:100%; padding:24px 22px 44px; gap:12px;
-}
-.photo-frame {
-  position:relative; flex:1; width:100%; max-height:calc(100% - 52px);
-  border-radius:3px; overflow:hidden; cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 0 0 3px rgba(212,168,67,.28),inset 0 0 0 4px rgba(255,255,255,.55);
-  transition:transform .2s,box-shadow .2s;
-}
-.photo-frame:hover { transform:scale(1.015); box-shadow:0 4px 18px rgba(0,0,0,.3),inset 0 0 0 3px rgba(212,168,67,.5),inset 0 0 0 4px rgba(255,255,255,.8); }
+.photo-area { position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; padding:24px 22px 44px; gap:12px; }
+.photo-frame { position:relative; flex:1; width:100%; max-height:calc(100% - 52px); border-radius:3px; overflow:hidden; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 0 0 3px rgba(212,168,67,.28),inset 0 0 0 4px rgba(255,255,255,.55); transition:transform .2s,box-shadow .2s; }
+.photo-frame:hover { transform:scale(1.015); }
 .photo-frame img { width:100%; height:100%; object-fit:cover; display:block; }
-.photo-placeholder {
-  width:100%; height:100%;
-  background:linear-gradient(135deg,var(--warm) 0%,#e0cfa0 100%);
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:10px; cursor:pointer; border:2px dashed rgba(180,140,60,.3);
-  transition:background .2s;
-}
+.photo-placeholder { width:100%; height:100%; background:linear-gradient(135deg,var(--warm) 0%,#e0cfa0 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; border:2px dashed rgba(180,140,60,.3); transition:background .2s; }
 .photo-placeholder:hover { background:linear-gradient(135deg,#e8d5a0,#d4bc80); }
 .photo-placeholder-icon { font-size:28px; opacity:.4; }
 .photo-placeholder-text { font-size:11px; color:var(--ink-light); opacity:.65; letter-spacing:1px; }
 
-.caption-input {
-  width:100%; background:transparent; border:none;
-  border-bottom:1px solid rgba(212,168,67,.28);
-  text-align:center; font-family:'Quicksand',sans-serif;
-  font-size:11.5px; color:var(--ink); padding:4px 8px; outline:none;
-  transition:border-color .2s;
-}
+.caption-input { width:100%; background:transparent; border:none; border-bottom:1px solid rgba(212,168,67,.28); text-align:center; font-family:'Quicksand',sans-serif; font-size:11.5px; color:var(--ink); padding:4px 8px; outline:none; transition:border-color .2s; }
 .caption-input::placeholder { color:rgba(100,70,20,.32); font-style:italic; }
 .caption-input:focus { border-bottom-color:var(--gold); }
 
-.page-num {
-  position:absolute; bottom:12px;
-  font-family:'Cinzel',serif; font-size:10px; color:var(--ink-light); opacity:.5; z-index:10;
-}
+.page-num { position:absolute; bottom:12px; font-family:'Cinzel',serif; font-size:10px; color:var(--ink-light); opacity:.5; z-index:10; }
 .page-left .page-num { left:18px; }
 .page-right .page-num { right:18px; }
 
-/* Cinna corner decoration */
-.cinna-deco {
-  position:absolute; pointer-events:none; z-index:5; opacity:.55;
-}
+.cinna-deco { position:absolute; pointer-events:none; z-index:5; opacity:.55; }
 
-/* ═══ HIDDEN MESSAGE OVERLAY ═══ */
-.msg-overlay {
-  position:fixed; inset:0; z-index:100;
-  background:rgba(8,5,18,.82); backdrop-filter:blur(8px);
-  display:flex; align-items:center; justify-content:center;
-  animation:fadeIn .3s ease;
-}
+.msg-overlay { position:fixed; inset:0; z-index:100; background:rgba(8,5,18,.82); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; animation:fadeIn .3s ease; }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-.msg-box {
-  background:linear-gradient(145deg,#1a0a2e,#2a1040);
-  border:1.5px solid rgba(212,168,67,.4); border-radius:16px;
-  padding:40px; width:420px; max-width:90vw;
-  display:flex; flex-direction:column; align-items:center; gap:16px;
-  position:relative;
-  box-shadow:0 0 60px rgba(168,70,200,.2);
-  animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
-}
+.msg-box { background:linear-gradient(145deg,#1a0a2e,#2a1040); border:1.5px solid rgba(212,168,67,.4); border-radius:16px; padding:40px; width:420px; max-width:90vw; display:flex; flex-direction:column; align-items:center; gap:16px; position:relative; box-shadow:0 0 60px rgba(168,70,200,.2); animation:popIn .35s cubic-bezier(.34,1.56,.64,1); }
 @keyframes popIn { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
-.msg-sparkle {
-  font-size:32px; animation:spin 3s linear infinite;
-}
+.msg-sparkle { font-size:32px; animation:spin 3s linear infinite; }
 @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
-.msg-title {
-  font-family:'Cinzel',serif; color:var(--gold-light); font-size:15px; letter-spacing:2px;
-  text-align:center;
-}
-.msg-textarea {
-  width:100%; min-height:90px; background:rgba(255,255,255,.06);
-  border:1px solid rgba(212,168,67,.25); border-radius:10px;
-  color:white; font-family:'Quicksand',sans-serif; font-size:14px;
-  padding:12px 16px; outline:none; resize:none; line-height:1.6;
-  transition:border-color .2s;
-}
+.msg-title { font-family:'Cinzel',serif; color:var(--gold-light); font-size:15px; letter-spacing:2px; text-align:center; }
+.msg-textarea { width:100%; min-height:90px; background:rgba(255,255,255,.06); border:1px solid rgba(212,168,67,.25); border-radius:10px; color:white; font-family:'Quicksand',sans-serif; font-size:14px; padding:12px 16px; outline:none; resize:none; line-height:1.6; }
 .msg-textarea::placeholder { color:rgba(255,255,255,.25); font-style:italic; }
-.msg-textarea:focus { border-color:rgba(212,168,67,.5); }
-.msg-close {
-  background:linear-gradient(135deg,rgba(168,216,240,.2),rgba(245,194,203,.2));
-  border:1px solid rgba(168,216,240,.35); border-radius:30px;
-  color:var(--cinna-blue); padding:9px 28px; cursor:pointer;
-  font-family:'Quicksand',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px;
-  transition:all .2s;
-}
-.msg-close:hover { background:linear-gradient(135deg,rgba(168,216,240,.35),rgba(245,194,203,.35)); transform:translateY(-1px); }
+.msg-close { background:linear-gradient(135deg,rgba(168,216,240,.2),rgba(245,194,203,.2)); border:1px solid rgba(168,216,240,.35); border-radius:30px; color:var(--cinna-blue); padding:9px 28px; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; transition:all .2s; }
+.msg-close:hover { transform:translateY(-1px); }
 .msg-hint { font-size:11px; color:rgba(168,216,240,.45); letter-spacing:1px; }
 
-/* ═══ NAV ═══ */
-.nav-bar {
-  display:flex; align-items:center; gap:20px; z-index:10; position:relative;
-}
-.nav-btn {
-  background:rgba(212,168,67,.12); border:1px solid rgba(212,168,67,.3);
-  color:var(--gold-light); width:42px; height:42px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; font-size:20px; transition:all .2s; backdrop-filter:blur(4px);
-}
-.nav-btn:hover:not(:disabled) { background:rgba(212,168,67,.28); border-color:var(--gold); transform:scale(1.1); }
+.nav-bar { display:flex; align-items:center; gap:20px; z-index:10; position:relative; }
+.nav-btn { background:rgba(212,168,67,.12); border:1px solid rgba(212,168,67,.3); color:var(--gold-light); width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:20px; transition:all .2s; backdrop-filter:blur(4px); }
+.nav-btn:hover:not(:disabled) { background:rgba(212,168,67,.28); transform:scale(1.1); }
 .nav-btn:disabled { opacity:.22; cursor:default; }
-.page-indicator {
-  font-family:'Cinzel',serif; font-size:12px;
-  color:rgba(212,168,67,.65); letter-spacing:2px;
-}
-.upload-btn {
-  background:linear-gradient(135deg,rgba(168,216,240,.15),rgba(245,194,203,.15));
-  border:1px solid rgba(168,216,240,.35); border-radius:30px;
-  color:var(--cinna-blue); padding:9px 20px; cursor:pointer;
-  font-family:'Quicksand',sans-serif; font-size:13px; font-weight:600; letter-spacing:.5px;
-  display:flex; align-items:center; gap:7px; transition:all .2s;
-}
-.upload-btn:hover { background:linear-gradient(135deg,rgba(168,216,240,.28),rgba(245,194,203,.28)); transform:translateY(-1px); }
+.page-indicator { font-family:'Cinzel',serif; font-size:12px; color:rgba(212,168,67,.65); letter-spacing:2px; }
+.upload-btn { background:linear-gradient(135deg,rgba(168,216,240,.15),rgba(245,194,203,.15)); border:1px solid rgba(168,216,240,.35); border-radius:30px; color:var(--cinna-blue); padding:9px 20px; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:13px; font-weight:600; letter-spacing:.5px; display:flex; align-items:center; gap:7px; transition:all .2s; }
+.upload-btn:hover { transform:translateY(-1px); }
 
-/* ═══ TWEAKS ═══ */
-.tweaks-panel {
-  position:fixed; bottom:20px; right:20px; width:260px;
-  background:rgba(12,8,22,.96); border:1px solid rgba(212,168,67,.28);
-  border-radius:14px; padding:20px; z-index:200; backdrop-filter:blur(14px);
-  display:none; flex-direction:column; gap:14px;
-}
-.tweaks-panel.open { display:flex; }
-.tweaks-title { font-family:'Cinzel',serif; color:var(--gold); font-size:13px; letter-spacing:2px; border-bottom:1px solid rgba(212,168,67,.18); padding-bottom:10px; }
-.tweak-row { display:flex; flex-direction:column; gap:4px; }
-.tweak-lbl { font-size:10px; color:rgba(255,255,255,.45); letter-spacing:1px; text-transform:uppercase; }
-.tweak-inp {
-  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
-  border-radius:7px; color:white; padding:6px 10px;
-  font-family:'Quicksand',sans-serif; font-size:13px; width:100%; outline:none;
-}
-.tweak-inp:focus { border-color:rgba(212,168,67,.4); }
-.tweak-btn-row { display:flex; gap:8px; }
-.tweak-btn {
-  flex:1; padding:7px; border-radius:7px; cursor:pointer;
-  font-family:'Quicksand',sans-serif; font-size:12px; border:none;
-  transition:all .2s;
-}
-.tweak-btn.add { background:rgba(168,216,240,.12); border:1px solid rgba(168,216,240,.2); color:#a8d8f0; }
-.tweak-btn.remove { background:rgba(255,100,100,.1); border:1px solid rgba(255,100,100,.2); color:#ff9999; }
-.tweak-btn:hover { filter:brightness(1.3); }
+.last-page { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:36px; gap:16px; }
+.last-page-title { font-family:'Cinzel',serif; color:var(--ink-light); font-size:14px; text-align:center; opacity:.65; }
+.add-page-btn { padding:8px 22px; background:rgba(168,216,240,.1); border:1px solid rgba(168,216,240,.28); border-radius:20px; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:12px; color:#a8d8f0; letter-spacing:.5px; transition:all .2s; }
 
-/* ═══ LAST PAGE ═══ */
-.last-page {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  height:100%; padding:36px; gap:16px;
-}
-.last-page-title {
-  font-family:'Cinzel',serif; color:var(--ink-light); font-size:14px;
-  text-align:center; opacity:.65;
-}
-.add-page-btn {
-  padding:8px 22px; background:rgba(168,216,240,.1);
-  border:1px solid rgba(168,216,240,.28); border-radius:20px;
-  cursor:pointer; font-family:'Quicksand',sans-serif;
-  font-size:12px; color:#a8d8f0; letter-spacing:.5px; transition:all .2s;
-}
-.add-page-btn:hover { background:rgba(168,216,240,.22); }
+/* === LOGIN GATE === */
+.gate { position:fixed; inset:0; z-index:1000; background:linear-gradient(145deg,#0a0613,#1a0a2e); display:flex; align-items:center; justify-content:center; }
+.gate-box { background:rgba(20,10,30,.9); border:1.5px solid rgba(212,168,67,.4); border-radius:20px; padding:48px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; box-shadow:0 0 60px rgba(168,70,200,.25); width:340px; max-width:90vw; }
+.gate-title { font-family:'Cinzel',serif; color:var(--gold-light); font-size:20px; letter-spacing:2px; text-align:center; }
+.gate-sub { font-size:12px; color:rgba(255,255,255,.5); text-align:center; }
+.gate-input { width:100%; background:rgba(255,255,255,.07); border:1px solid rgba(212,168,67,.3); border-radius:10px; padding:12px 16px; color:white; font-family:'Quicksand',sans-serif; font-size:14px; outline:none; text-align:center; letter-spacing:2px; }
+.gate-input:focus { border-color:var(--gold); }
+.gate-btn { background:linear-gradient(135deg,rgba(168,216,240,.25),rgba(245,194,203,.25)); border:1px solid rgba(168,216,240,.5); border-radius:30px; color:var(--cinna-blue); padding:11px 36px; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:13px; font-weight:600; letter-spacing:1.5px; }
+.gate-err { color:#ff9999; font-size:12px; min-height:16px; }
+
+.status-pill { position:fixed; bottom:16px; left:16px; z-index:50; background:rgba(8,4,18,.85); border:1px solid rgba(168,216,240,.25); border-radius:20px; padding:6px 14px; font-size:11px; color:rgba(168,216,240,.7); display:flex; align-items:center; gap:8px; }
+.status-dot { width:8px; height:8px; border-radius:50%; background:#5cffaa; box-shadow:0 0 8px #5cffaa; }
+.status-dot.loading { background:#ffaa55; box-shadow:0 0 8px #ffaa55; animation:pulse 1s infinite; }
+.status-dot.error { background:#ff5555; box-shadow:0 0 8px #ff5555; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 </style>
 </head>
 <body>
-<template id="__bundler_thumbnail">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a0a2e"/>
-      <stop offset="50%" stop-color="#5a1020"/>
-      <stop offset="100%" stop-color="#0a0d1e"/>
-    </linearGradient>
-  </defs>
-  <rect width="200" height="200" fill="url(#bg)"/>
-  <rect x="60" y="40" width="80" height="120" rx="4" fill="#faf4e6" stroke="#d4a843" stroke-width="1.5"/>
-  <text x="100" y="95" font-family="serif" font-size="14" fill="#d4a843" text-anchor="middle" font-style="italic">Álbum</text>
-  <text x="100" y="115" font-family="serif" font-size="10" fill="#7a5c30" text-anchor="middle">♡</text>
-  <text x="100" y="175" font-family="serif" font-size="18" fill="#f0cc70" text-anchor="middle">✦ ♡ ✦</text>
-</svg>
-</template>
 <div id="root"></div>
-<script type="text/babel">
 
-
-
-
-
-
+<script type="text/babel" data-presets="env,react">
 const { useState, useEffect, useRef, useCallback } = React;
 
-const LS = 'romantic_album_v4';
-const DEFAULTS = /*EDITMODE-BEGIN*/{
-  "albumTitle": "Un poco de nosotros",
-  "coupleNames": "Sofía & Tomás",
-  "specialDate": "13 de Septiembre 2024",
-  "startDate": "2024-09-13"
-} /*EDITMODE-END*/;
+// ============================================================
+// 🔐 CAMBIA ESTOS DOS VALORES
+// ============================================================
+const ALBUM_PASSWORD = "1234";  
+const IMGBB_API_KEY = "42b5fe5984ea785ad713853a8370e942"; 
+const ALBUM_ID = "main"; //
+// ============================================================
 
-function load() {try {return JSON.parse(localStorage.getItem(LS)) || {};} catch {return {};}}
-function save(s) {try {localStorage.setItem(LS, JSON.stringify(s));} catch {}}
+const DEFAULTS = {
+  title: "Un poco de nosotros",
+  names: "Sofía & Tomás",
+  date: "13 de Septiembre 2024",
+  startD: "2024-09-13"
+};
+
+// Esperar a que Firebase esté listo
+function useFirebase() {
+  const [fb, setFb] = useState(window.__fb || null);
+  useEffect(() => {
+    if (window.__fb) { setFb(window.__fb); return; }
+    const h = () => setFb(window.__fb);
+    window.addEventListener('fb-ready', h);
+    return () => window.removeEventListener('fb-ready', h);
+  }, []);
+  return fb;
+}
+
+// Subir imagen a ImgBB
+async function uploadToImgBB(file) {
+  const fd = new FormData();
+  fd.append('image', file);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: 'POST', body: fd
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error('ImgBB upload failed');
+  return {
+    url: json.data.url,
+    deleteUrl: json.data.delete_url
+  };
+}
 
 // ─── Marauder Map Background ───
 function MarauderMap() {
   const steps = [
-  { x: '15%', y: '20%', tx: 60, ty: 80, dur: 7, del: 0 },
-  { x: '60%', y: '10%', tx: -80, ty: 60, dur: 9, del: 2 },
-  { x: '80%', y: '55%', tx: -60, ty: -40, dur: 8, del: 1 },
-  { x: '30%', y: '70%', tx: 80, ty: -50, dur: 10, del: 3 },
-  { x: '50%', y: '40%', tx: -50, ty: 70, dur: 7, del: 4 },
-  { x: '10%', y: '80%', tx: 90, ty: -60, dur: 11, del: 1.5 },
-  { x: '90%', y: '30%', tx: -70, ty: 50, dur: 8.5, del: 0.5 },
-  { x: '45%', y: '85%', tx: 50, ty: -70, dur: 9.5, del: 2.5 }];
-
+    { x:'15%',y:'20%',tx:60,ty:80,dur:7,del:0 },
+    { x:'60%',y:'10%',tx:-80,ty:60,dur:9,del:2 },
+    { x:'80%',y:'55%',tx:-60,ty:-40,dur:8,del:1 },
+    { x:'30%',y:'70%',tx:80,ty:-50,dur:10,del:3 },
+    { x:'50%',y:'40%',tx:-50,ty:70,dur:7,del:4 },
+    { x:'10%',y:'80%',tx:90,ty:-60,dur:11,del:1.5 },
+    { x:'90%',y:'30%',tx:-70,ty:50,dur:8.5,del:0.5 },
+    { x:'45%',y:'85%',tx:50,ty:-70,dur:9.5,del:2.5 }
+  ];
   return <>
     <div className="map-bg">
       <svg viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <filter id="blur1"><feGaussianBlur stdDeviation="0.5" /></filter>
-        </defs>
-        {/* Main corridors */}
-        {[['0', '240', '1280', '240'], ['0', '500', '1280', '500'], ['320', '0', '320', '800'], ['640', '0', '640', '800'], ['960', '0', '960', '800']].map(([x1, y1, x2, y2], i) =>
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(180,140,60,.14)" strokeWidth="1" filter="url(#blur1)" />
+        {[['0','240','1280','240'],['0','500','1280','500'],['320','0','320','800'],['640','0','640','800'],['960','0','960','800']].map(([x1,y1,x2,y2],i)=>
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(180,140,60,.14)" strokeWidth="1"/>
         )}
-        {/* Diagonal passages */}
-        {[['0', '0', '320', '240'], ['320', '240', '640', '0'], ['960', '0', '1280', '240'], ['0', '800', '320', '500'], ['960', '500', '1280', '800'], ['640', '240', '960', '500']].map(([x1, y1, x2, y2], i) =>
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(180,140,60,.07)" strokeWidth="0.8" />
-        )}
-        {/* Rooms */}
         {[
-        [30, 30, 140, 80], [350, 30, 200, 80], [680, 30, 180, 80], [990, 30, 200, 80],
-        [30, 280, 160, 90], [350, 280, 180, 90], [680, 280, 200, 90], [990, 280, 200, 90],
-        [30, 540, 150, 85], [350, 540, 170, 85], [680, 540, 190, 85], [990, 540, 180, 85],
-        [30, 680, 120, 90], [350, 680, 200, 90], [680, 680, 180, 90], [990, 680, 200, 90]].
-        map(([x, y, w, h], i) =>
-        <rect key={i} x={x} y={y} width={w} height={h} fill="none" stroke="rgba(180,140,60,.1)" strokeWidth="0.8" />
+          [30,30,140,80],[350,30,200,80],[680,30,180,80],[990,30,200,80],
+          [30,280,160,90],[350,280,180,90],[680,280,200,90],[990,280,200,90],
+          [30,540,150,85],[350,540,170,85],[680,540,190,85],[990,540,180,85]
+        ].map(([x,y,w,h],i)=>
+          <rect key={i} x={x} y={y} width={w} height={h} fill="none" stroke="rgba(180,140,60,.1)" strokeWidth="0.8"/>
         )}
-        {/* HP Location labels */}
-        {[
-        [60, 75, 'Gran Comedor'], [380, 75, 'Torre de Gryffindor'], [690, 75, 'Biblioteca'],
-        [995, 75, 'Sala de Pociones'], [60, 330, 'Salón de Clases'], [380, 330, 'Quidditch'],
-        [690, 330, 'Enfermería'], [990, 330, 'Sala de Requisitos'],
-        [60, 575, 'Dungeon'], [380, 575, 'Pasaje Secreto'], [690, 575, 'Invernadero']].
-        map(([x, y, t], i) =>
-        <text key={i} x={x} y={y} fontSize="7" fill="rgba(180,140,60,.25)" fontFamily="serif" fontStyle="italic">{t}</text>
-        )}
-        {/* Decorative dots along corridors */}
-        {Array.from({ length: 30 }, (_, i) => ({
-          cx: (i * 97 + 43) % 1280, cy: i % 2 === 0 ? 240 : 500,
-          r: i % 3 === 0 ? 1.5 : 1
-        })).map((d, i) =>
-        <circle key={i} cx={d.cx} cy={d.cy} r={d.r} fill="rgba(180,140,60,.2)" />
-        )}
-        {/* Subtle vignette */}
         <radialGradient id="vig" cx="50%" cy="50%" r="70%">
-          <stop offset="0%" stopColor="transparent" />
-          <stop offset="100%" stopColor="rgba(5,3,12,.6)" />
+          <stop offset="0%" stopColor="transparent"/>
+          <stop offset="100%" stopColor="rgba(5,3,12,.6)"/>
         </radialGradient>
-        <rect width="1280" height="800" fill="url(#vig)" />
+        <rect width="1280" height="800" fill="url(#vig)"/>
       </svg>
     </div>
-    {steps.map((s, i) =>
-    <div key={i} className="footstep" style={{
-      left: s.x, top: s.y,
-      '--dur': s.dur + 's', '--del': s.del + 's',
-      '--tx': s.tx + 'px', '--ty': s.ty + 'px'
-    }} />
+    {steps.map((s,i)=>
+      <div key={i} className="footstep" style={{left:s.x,top:s.y,'--dur':s.dur+'s','--del':s.del+'s','--tx':s.tx+'px','--ty':s.ty+'px'}}/>
     )}
   </>;
 }
 
-// ─── Floating Particles ───
-const EMOJIS = ['✦', '♡', '✨', '⚡', '🌙', '✦', '♡', '✦', '·'];
-function Particles() {
-  const items = Array.from({ length: 16 }, (_, i) => ({
-    id: i, x: Math.random() * 100,
-    e: EMOJIS[i % EMOJIS.length],
-    dur: (Math.random() * 8 + 8).toFixed(1),
-    del: (Math.random() * 12).toFixed(1),
-    sz: (Math.random() * 8 + 10).toFixed(0)
-  }));
-  return (
-    <div className="particles">
-      {items.map((p) =>
-      <div key={p.id} className="particle" style={{
-        left: p.x + '%', '--dur': p.dur + 's', '--del': p.del + 's', '--sz': p.sz + 'px', fontSize: p.sz + 'px'
-      }}>{p.e}</div>
-      )}
-    </div>);
-
+const EMOJIS=['✦','♡','✨','⚡','🌙','✦','♡','✦','·'];
+function Particles(){
+  const items=Array.from({length:16},(_,i)=>({id:i,x:Math.random()*100,e:EMOJIS[i%EMOJIS.length],dur:(Math.random()*8+8).toFixed(1),del:(Math.random()*12).toFixed(1),sz:(Math.random()*8+10).toFixed(0)}));
+  return <div className="particles">{items.map(p=><div key={p.id} className="particle" style={{left:p.x+'%','--dur':p.dur+'s','--del':p.del+'s','--sz':p.sz+'px',fontSize:p.sz+'px'}}>{p.e}</div>)}</div>;
 }
 
-// ─── Days Together Counter ───
-function DaysCounter({ startDate }) {
-  const [count, setCount] = useState(0);
-  const [isFuture, setIsFuture] = useState(false);
-  useEffect(() => {
-    const start = new Date(startDate + 'T00:00:00');
-    const now = new Date();
-    const diff = Math.floor((now - start) / 86400000);
-    if (diff < 0) {setIsFuture(true);setCount(Math.abs(diff));} else
-    {setIsFuture(false);setCount(diff);}
-  }, [startDate]);
-  return (
-    <div className="days-pill" style={{ width: "120.391px", height: "39px" }}>
-      <div className="days-num" style={{ height: "48px", width: "51px", letterSpacing: "-0.2px", fontWeight: "300", padding: "-20px 0px 0px" }}>{count}</div>
-      <div className="days-label" style={{ textAlign: "center", padding: "0px", width: "93px", margin: "-8px 0px 0px" }}>{isFuture ? 'días para ✦' : 'días juntos'}</div>
-    </div>);
-
+function DaysCounter({startDate}){
+  const [count,setCount]=useState(0);
+  const [isFuture,setIsFuture]=useState(false);
+  useEffect(()=>{
+    const start=new Date(startDate+'T00:00:00');
+    const now=new Date();
+    const diff=Math.floor((now-start)/86400000);
+    if(diff<0){setIsFuture(true);setCount(Math.abs(diff));}
+    else{setIsFuture(false);setCount(diff);}
+  },[startDate]);
+  return <div className="days-pill"><div className="days-num">{count}</div><div className="days-label">{isFuture?'días para ✦':'días juntos'}</div></div>;
 }
 
-// ─── Cinnamoroll Decoration ───
-function CinnaDeco({ size = 55, style = {} }) {
-  return (
-    <img
-      src="uploads/pngwing.com (1).png"
-      style={{ width: size, height: size, objectFit: 'contain', pointerEvents: 'none', ...style }}
-      alt="" />);
-
-
+function CinnaDeco({size=55,style={}}){
+  return <div style={{width:size,height:size,...style,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.6,opacity:0.7}}>☁️</div>;
 }
 
-// ─── HP Decoration ───
-function HpDeco({ size = 80, style = {} }) {
-  return (
-    <img
-      src="uploads/pngwing.com.png"
-      style={{ width: size, height: size, objectFit: 'contain', pointerEvents: 'none', ...style }}
-      alt="" />);
-
-
+function HiddenMessageOverlay({message,onSave,onClose}){
+  const [text,setText]=useState(message||'');
+  return <div className="msg-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+    <div className="msg-box">
+      <div className="msg-sparkle">✨</div>
+      <div className="msg-title">Mensaje secreto</div>
+      <div className="msg-hint">Solo tú lo puedes ver al tocar esta foto</div>
+      <textarea className="msg-textarea" value={text} onChange={e=>setText(e.target.value)} placeholder="Escribe algo especial... 🪄" maxLength={200}/>
+      <button className="msg-close" onClick={()=>{onSave(text);onClose();}}>Guardar mensaje ✦</button>
+    </div>
+  </div>;
 }
 
-// ─── Hidden Message Overlay ───
-function HiddenMessageOverlay({ photoIndex, message, onSave, onClose }) {
-  const [text, setText] = useState(message || '');
-  const sparkles = ['✨', '⚡', '✦', '🌙', '♡'];
-  return (
-    <div className="msg-overlay" onClick={(e) => {if (e.target === e.currentTarget) onClose();}}>
-      <div className="msg-box">
-        {/* Floating sparkles around box */}
-        {sparkles.map((s, i) =>
-        <div key={i} style={{
-          position: 'absolute',
-          top: i < 3 ? '-18px' : 'auto',
-          bottom: i >= 3 ? '-18px' : 'auto',
-          left: `${15 + i * 18}%`,
-          fontSize: 18,
-          animation: `floatY${i % 2} 2s ease-in-out infinite`,
-          animationDelay: i * 0.3 + 's'
-        }}>{s}</div>
-        )}
-        <div className="msg-sparkle">✨</div>
-        <div className="msg-title">Mensaje secreto</div>
-        <div className="msg-hint">Solo tú lo puedes ver al tocar esta foto</div>
-        <textarea
-          className="msg-textarea"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escribe algo especial para esta foto... 🪄"
-          maxLength={200} />
-        
-        <button className="msg-close" onClick={() => {onSave(text);onClose();}}>
-          Guardar mensaje ✦
-        </button>
+function CoverSpread({title,names,date}){
+  return <div className="spread">
+    <div className="page page-left cover-left">
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16,position:'relative'}}>
+        <div style={{fontSize:120,opacity:0.3}}>⚡</div>
       </div>
-    </div>);
-
+    </div>
+    <div className="page page-right cover-right">
+      <div className="cover-border"/>
+      <div style={{position:'relative',zIndex:2,display:'flex',flexDirection:'column',alignItems:'center'}}>
+        <CinnaDeco size={100}/>
+        <div className="cover-title">{title}</div>
+        <div className="cover-divider"/>
+        <div className="cover-names">{names}</div>
+        <div className="cover-date">{date}</div>
+      </div>
+    </div>
+  </div>;
 }
 
-// ─── Cover Spread ───
-function CoverSpread({ title, names, date, startDate }) {
-  return (
-    <div className="spread">
-      {/* Left: HP + decorations */}
-      <div className="page page-left cover-left" style={{ background: 'linear-gradient(145deg,#080c1c,#101a30)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 16, position: 'relative', zIndex: 3 }}>
-          <HpDeco size={220} style={{ objectFit: 'contain' }} />
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, color: 'rgba(212,168,67,.5)', letterSpacing: 4, textTransform: 'uppercase' }}>
-
-          </div>
-          {/* HP accent stars */}
-          <div style={{ position: 'absolute', top: 24, left: 24, fontSize: 12, color: 'rgba(212,168,67,.4)' }}>⚡</div>
-          <div style={{ position: 'absolute', top: 24, right: 28, fontSize: 10, color: 'rgba(212,168,67,.3)' }}>✦</div>
-          <div style={{ position: 'absolute', bottom: 24, left: 24, fontSize: 10, color: 'rgba(212,168,67,.3)' }}>✦</div>
-          <div style={{ position: 'absolute', bottom: 24, right: 28, fontSize: 12, color: 'rgba(212,168,67,.35)' }}>⚡</div>
-        </div>
-      </div>
-
-      {/* Right: cover */}
-      <div className="page page-right cover-right">
-        <div className="cover-border" />
-        {/* BG lightning bolt watermark */}
-        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: .04, zIndex: 1 }}>
-          <path d="M200 60 L155 200 L185 200 L140 340 L260 180 L225 180 L270 60Z" fill="white" />
-        </svg>
-
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <CinnaDeco size={130} />
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: 4, color: 'rgba(168,216,240,.55)', textTransform: 'uppercase', marginTop: 6, marginBottom: 10 }}>
-
-          </div>
-          <div className="cover-title">{title}</div>
-          <div className="cover-divider" />
-          <div className="cover-names">{names}</div>
-          <div className="cover-date">{date}</div>
-          <div style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center' }}>
-            {['✦', '♡', '✦'].map((s, i) =>
-            <span key={i} style={{ color: i === 1 ? 'rgba(245,194,203,.55)' : 'rgba(168,216,240,.45)', fontSize: i === 1 ? 16 : 10 }}>{s}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>);
-
-}
-
-// ─── Photo Page ───
-function PhotoPage({ photo, caption, onPhotoClick, onCaptionChange, onSecretClick, onDelete, hasSecret, pageNum, side }) {
-  return (
-    <div className={`page page-${side}`}>
-      {/* Cinna decorations */}
-      <div className="cinna-deco" style={side === 'left' ? { bottom: 36, left: 4 } : { bottom: 36, right: 4 }}>
-        <CinnaDeco size={42} />
-      </div>
-
-      <div className="photo-area">
-        <div className="photo-frame" onClick={onPhotoClick} style={{ position: 'relative' }}>
-          {photo ?
-          <>
-              <img src={photo} alt="foto" />
-              {/* Top-right action buttons */}
-              <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 5 }}>
-                <div
-                onClick={(e) => {e.stopPropagation();onSecretClick();}}
-                style={{
-                  background: 'rgba(8,5,18,.65)',
-                  border: '1px solid rgba(212,168,67,.35)',
-                  borderRadius: 20, padding: '4px 10px',
-                  fontSize: 10, color: hasSecret ? '#f0cc70' : 'rgba(212,168,67,.5)',
-                  cursor: 'pointer', backdropFilter: 'blur(4px)',
-                  transition: 'all .2s', fontFamily: "'Quicksand',sans-serif",
-                  letterSpacing: .5
-                }}
-                title="Mensaje secreto">
-                  {hasSecret ? '✨ Mensaje' : '+ Secreto'}
-                </div>
-                <div
-                onClick={(e) => {e.stopPropagation();if (confirm('¿Borrar esta foto?')) onDelete();}}
-                style={{
-                  background: 'rgba(80,10,20,.75)',
-                  border: '1px solid rgba(255,120,120,.4)',
-                  borderRadius: 20, padding: '4px 8px',
-                  fontSize: 11, color: '#ffb0b0',
-                  cursor: 'pointer', backdropFilter: 'blur(4px)',
-                  transition: 'all .2s', fontFamily: "'Quicksand',sans-serif",
-                  lineHeight: 1
-                }}
-                title="Borrar foto">
-                  🗑
-                </div>
-              </div>
-            </> :
-
+function PhotoPage({photo,caption,onPhotoClick,onCaptionChange,onSecretClick,onDelete,hasSecret,pageNum,side,uploading}){
+  return <div className={`page page-${side}`}>
+    <div className="cinna-deco" style={side==='left'?{bottom:36,left:4}:{bottom:36,right:4}}><CinnaDeco size={42}/></div>
+    <div className="photo-area">
+      <div className="photo-frame" onClick={onPhotoClick} style={{position:'relative'}}>
+        {uploading ? (
           <div className="photo-placeholder">
-              <div className="photo-placeholder-icon">📷</div>
-              <div className="photo-placeholder-text">Toca para añadir foto</div>
+            <div className="photo-placeholder-icon">⏳</div>
+            <div className="photo-placeholder-text">Subiendo...</div>
+          </div>
+        ) : photo ? (<>
+          <img src={photo} alt="foto"/>
+          <div style={{position:'absolute',top:8,right:8,display:'flex',gap:6,zIndex:5}}>
+            <div onClick={e=>{e.stopPropagation();onSecretClick();}} style={{background:'rgba(8,5,18,.65)',border:'1px solid rgba(212,168,67,.35)',borderRadius:20,padding:'4px 10px',fontSize:10,color:hasSecret?'#f0cc70':'rgba(212,168,67,.5)',cursor:'pointer',backdropFilter:'blur(4px)',fontFamily:"'Quicksand',sans-serif"}}>
+              {hasSecret?'✨ Mensaje':'+ Secreto'}
             </div>
-          }
-        </div>
-        <input
-          className="caption-input"
-          value={caption || ''}
-          onChange={(e) => onCaptionChange(e.target.value)}
-          placeholder="Escribe algo especial…"
-          maxLength={80} />
-        
+            <div onClick={e=>{e.stopPropagation();if(confirm('¿Borrar esta foto?'))onDelete();}} style={{background:'rgba(80,10,20,.75)',border:'1px solid rgba(255,120,120,.4)',borderRadius:20,padding:'4px 8px',fontSize:11,color:'#ffb0b0',cursor:'pointer',backdropFilter:'blur(4px)',lineHeight:1}}>🗑</div>
+          </div>
+        </>) : (
+          <div className="photo-placeholder">
+            <div className="photo-placeholder-icon">📷</div>
+            <div className="photo-placeholder-text">Toca para añadir foto</div>
+          </div>
+        )}
       </div>
-      {pageNum && <div className="page-num">{pageNum}</div>}
-    </div>);
-
+      <input className="caption-input" value={caption||''} onChange={e=>onCaptionChange(e.target.value)} placeholder="Escribe algo especial…" maxLength={80} disabled={!photo}/>
+    </div>
+    {pageNum && <div className="page-num">{pageNum}</div>}
+  </div>;
 }
 
-// ─── Last Page ───
-function LastPage({ side, onAdd }) {
-  if (side === 'left') return <div className="page page-left" style={{ background: 'var(--cream)' }} />;
-  return (
-    <div className="page page-right">
-      <div className="last-page">
-        <CinnaDeco size={65} />
-        <div className="last-page-title">Añade más<br />recuerdos mágicos ✨</div>
-        <button className="add-page-btn" onClick={onAdd}>+ Agregar fotos</button>
-      </div>
-    </div>);
-
+function LastPage({side,onAdd}){
+  if(side==='left')return <div className="page page-left"/>;
+  return <div className="page page-right">
+    <div className="last-page">
+      <CinnaDeco size={65}/>
+      <div className="last-page-title">Añade más<br/>recuerdos mágicos ✨</div>
+      <button className="add-page-btn" onClick={onAdd}>+ Agregar fotos</button>
+    </div>
+  </div>;
 }
 
-// ─── Main Album ───
-function Album() {
-  const saved = load();
-  const [photos, setPhotos] = useState(saved.photos || [null, null]);
-  const [captions, setCaptions] = useState(saved.captions || ['', '']);
-  const [secrets, setSecrets] = useState(saved.secrets || {});
-  const [spread, setSpread] = useState(saved.spread || 0);
-  const [prevSpread, setPrevSpread] = useState(saved.spread || 0);
-  const [dir, setDir] = useState('right'); // slide direction
+// ─── LOGIN GATE ───
+function Gate({onUnlock}){
+  const [pw,setPw]=useState('');
+  const [err,setErr]=useState('');
+  const submit=()=>{
+    if(pw===ALBUM_PASSWORD){
+      sessionStorage.setItem('album_unlocked','1');
+      onUnlock();
+    } else {
+      setErr('Contraseña incorrecta');
+      setPw('');
+    }
+  };
+  return <div className="gate">
+    <div className="gate-box">
+      <div style={{fontSize:42}}>🔐</div>
+      <div className="gate-title">Álbum Privado</div>
+      <div className="gate-sub">Ingresa la contraseña para continuar</div>
+      <input className="gate-input" type="password" value={pw} onChange={e=>{setPw(e.target.value);setErr('');}} onKeyDown={e=>{if(e.key==='Enter')submit();}} autoFocus/>
+      <div className="gate-err">{err}</div>
+      <button className="gate-btn" onClick={submit}>Entrar ✦</button>
+    </div>
+  </div>;
+}
+
+// ─── ÁLBUM ───
+function Album(){
+  const fb = useFirebase();
+  const [photos, setPhotos] = useState([]); // [{id, url, caption, secret, deleteUrl, order}]
+  const [meta, setMeta] = useState(DEFAULTS);
+  const [spread, setSpread] = useState(0);
+  const [prevSpread, setPrevSpread] = useState(0);
+  const [dir, setDir] = useState('right');
   const [animKey, setAnimKey] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
-  const [tweaksOpen, setTweaksOpen] = useState(false);
-  const [msgSlot, setMsgSlot] = useState(null); // photo index for message overlay
-
-  const [title, setTitle] = useState(saved.title || DEFAULTS.albumTitle);
-  const [names, setNames] = useState(saved.names || DEFAULTS.coupleNames);
-  const [date, setDate] = useState(saved.date || DEFAULTS.specialDate);
-  const [startD, setStartD] = useState(saved.startD || DEFAULTS.startDate);
+  const [msgSlot, setMsgSlot] = useState(null);
+  const [uploadingSlots, setUploadingSlots] = useState(new Set());
+  const [status, setStatus] = useState('loading'); // loading | ok | error
+  const [loaded, setLoaded] = useState(false);
 
   const fileRef = useRef(null);
   const pendingSlot = useRef(null);
 
-  const totalSpreads = Math.ceil(photos.length / 2) + 1; // +1 for cover
-
+  // Suscribirse a Firestore
   useEffect(() => {
-    save({ photos, captions, secrets, spread, title, names, date, startD });
-  }, [photos, captions, secrets, spread, title, names, date, startD]);
+    if (!fb) return;
+    const { db, doc, collection, onSnapshot, query, orderBy, getDoc, setDoc } = fb;
 
-  // Tweaks protocol
-  useEffect(() => {
-    const h = (e) => {
-      if (e.data?.type === '__activate_edit_mode') setTweaksOpen(true);
-      if (e.data?.type === '__deactivate_edit_mode') setTweaksOpen(false);
-    };
-    window.addEventListener('message', h);
-    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-    return () => window.removeEventListener('message', h);
-  }, []);
+    const albumRef = doc(db, 'albums', ALBUM_ID);
+    const photosRef = collection(db, 'albums', ALBUM_ID, 'photos');
+
+    // Crear álbum si no existe
+    getDoc(albumRef).then(snap => {
+      if (!snap.exists()) {
+        setDoc(albumRef, DEFAULTS).catch(e => console.error('init album', e));
+      }
+    });
+
+    const unsubMeta = onSnapshot(albumRef, snap => {
+      if (snap.exists()) setMeta({ ...DEFAULTS, ...snap.data() });
+      setLoaded(true);
+      setStatus('ok');
+    }, err => { console.error(err); setStatus('error'); });
+
+    const q = query(photosRef, orderBy('order', 'asc'));
+    const unsubPhotos = onSnapshot(q, snap => {
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setPhotos(list);
+    }, err => { console.error(err); setStatus('error'); });
+
+    return () => { unsubMeta(); unsubPhotos(); };
+  }, [fb]);
+
+  // Páginas: cada spread (excepto portada) muestra 2 slots (foto o vacío)
+  // Si la última foto está en posición par, agregamos un slot vacío como "última página"
+  const slots = [...photos];
+  // Asegurar número par de slots para pares de páginas
+  if (slots.length % 2 !== 0) slots.push(null);
+  // Siempre dejar un par extra al final como "agregar más"
+  slots.push(null, null);
+
+  const totalSpreads = Math.ceil(slots.length / 2) + 1;
 
   const navigate = useCallback((delta) => {
     if (transitioning) return;
@@ -754,217 +491,170 @@ function Album() {
     setDir(delta > 0 ? 'right' : 'left');
     setPrevSpread(spread);
     setTransitioning(true);
-    setAnimKey((k) => k + 1);
-    // Swap underlying spread at the midpoint (flip edge-on, invisible)
-    setTimeout(() => {setSpread(next);}, 475);
-    setTimeout(() => {setTransitioning(false);}, 950);
+    setAnimKey(k => k + 1);
+    setTimeout(() => setSpread(next), 475);
+    setTimeout(() => setTransitioning(false), 950);
   }, [spread, totalSpreads, transitioning]);
 
   useEffect(() => {
-    const h = (e) => {
-      if (e.key === 'ArrowRight') navigate(1);
-      if (e.key === 'ArrowLeft') navigate(-1);
-    };
+    const h = e => { if (e.key === 'ArrowRight') navigate(1); if (e.key === 'ArrowLeft') navigate(-1); };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [navigate]);
 
-  const openPhoto = (slot) => {pendingSlot.current = slot;fileRef.current.click();};
-  const openBulk = () => {pendingSlot.current = null;fileRef.current.click();};
+  const openPhoto = (slotKey) => { pendingSlot.current = slotKey; fileRef.current.click(); };
+  const openBulk = () => { pendingSlot.current = null; fileRef.current.click(); };
 
-  const handleFiles = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    const slot = pendingSlot.current;
-
-    const readFile = (f) => new Promise((res) => {
-      const r = new FileReader();
-      r.onload = (ev) => res(ev.target.result);
-      r.readAsDataURL(f);
-    });
-
-    if (slot !== null && files.length === 1) {
-      readFile(files[0]).then((data) => {
-        setPhotos((p) => {const n = [...p];n[slot] = data;return n;});
+  // Subir nueva foto a Firestore (al final)
+  const addPhoto = async (file) => {
+    if (!fb) return;
+    const tmpKey = 'tmp_' + Date.now() + Math.random();
+    setUploadingSlots(s => { const n = new Set(s); n.add(tmpKey); return n; });
+    setStatus('loading');
+    try {
+      const { url, deleteUrl } = await uploadToImgBB(file);
+      const { db, collection, addDoc, serverTimestamp } = fb;
+      const order = (photos[photos.length - 1]?.order ?? 0) + 1;
+      await addDoc(collection(db, 'albums', ALBUM_ID, 'photos'), {
+        url, deleteUrl, caption: '', secret: '', order,
+        createdAt: serverTimestamp()
       });
-    } else {
-      // Fill empty slots then append
-      Promise.all(files.map(readFile)).then((datas) => {
-        setPhotos((prev) => {
-          const n = [...prev];
-          let fi = 0;
-          for (let i = 0; i < n.length && fi < datas.length; i++) {
-            if (!n[i]) n[i] = datas[fi++];
-          }
-          while (fi < datas.length) {
-            n.push(datas[fi++]);
-            if (n.length % 2 !== 0) n.push(null);
-          }
-          return n;
-        });
-        setCaptions((prev) => {
-          const n = [...prev];
-          while (n.length < photos.length + files.length + 2) n.push('');
-          return n;
-        });
-      });
+      setStatus('ok');
+    } catch (e) {
+      console.error(e);
+      alert('Error subiendo foto: ' + e.message);
+      setStatus('error');
+    } finally {
+      setUploadingSlots(s => { const n = new Set(s); n.delete(tmpKey); return n; });
     }
-    pendingSlot.current = null;
+  };
+
+  const handleFiles = async (e) => {
+    const files = Array.from(e.target.files);
     e.target.value = '';
+    if (!files.length) return;
+    for (const f of files) await addPhoto(f);
   };
 
-  const addPageSlots = () => {
-    setPhotos((p) => [...p, null, null]);
-    setCaptions((c) => [...c, '', '']);
+  const updatePhoto = async (id, fields) => {
+    if (!fb) return;
+    const { db, doc, updateDoc } = fb;
+    try { await updateDoc(doc(db, 'albums', ALBUM_ID, 'photos', id), fields); }
+    catch (e) { console.error(e); }
   };
 
-  // Render spread content
+  const deletePhoto = async (id) => {
+    if (!fb) return;
+    const { db, doc, deleteDoc } = fb;
+    try { await deleteDoc(doc(db, 'albums', ALBUM_ID, 'photos', id)); }
+    catch (e) { console.error(e); }
+  };
+
   const renderSpread = (si) => {
-    if (si === 0) return (
-      <CoverSpread title={title} names={names} date={date} startDate={startD} />);
+    if (si === 0) return <CoverSpread title={meta.title} names={meta.names} date={meta.date}/>;
 
-    const pi = (si - 1) * 2; // left photo index
+    const pi = (si - 1) * 2;
     const isLast = si === totalSpreads - 1;
 
-    const left =
-    <PhotoPage
-      photo={photos[pi]} caption={captions[pi]}
-      onPhotoClick={() => photos[pi] ? null : openPhoto(pi)}
-      onCaptionChange={(v) => setCaptions((c) => {const n = [...c];n[pi] = v;return n;})}
-      onSecretClick={() => setMsgSlot(pi)}
-      onDelete={() => {
-        setPhotos((p) => {const n = [...p];n[pi] = null;return n;});
-        setCaptions((c) => {const n = [...c];n[pi] = '';return n;});
-        setSecrets((s) => {const n = { ...s };delete n[pi];return n;});
-      }}
-      hasSecret={!!secrets[pi]}
-      pageNum={pi + 1} side="left" />;
+    const renderSlot = (idx, side) => {
+      const photo = slots[idx];
+      if (!photo) {
+        // slot vacío: si es el último, mostrar "agregar"
+        if (isLast && side === 'right') return <LastPage side="right" onAdd={openBulk}/>;
+        return <PhotoPage photo={null} caption="" onPhotoClick={openBulk} onCaptionChange={()=>{}} onSecretClick={()=>{}} onDelete={()=>{}} hasSecret={false} pageNum={idx+1} side={side} uploading={uploadingSlots.size > 0 && idx === photos.length}/>;
+      }
+      return <PhotoPage
+        photo={photo.url}
+        caption={photo.caption}
+        onPhotoClick={()=>{}}
+        onCaptionChange={v => updatePhoto(photo.id, { caption: v })}
+        onSecretClick={() => setMsgSlot(photo.id)}
+        onDelete={() => deletePhoto(photo.id)}
+        hasSecret={!!photo.secret}
+        pageNum={idx+1}
+        side={side}
+      />;
+    };
 
-
-
-    const right = pi + 1 < photos.length ?
-    isLast && !photos[pi + 1] ?
-    <LastPage side="right" onAdd={() => {addPageSlots();setTimeout(() => openBulk(), 50);}} /> :
-
-    <PhotoPage
-      photo={photos[pi + 1]} caption={captions[pi + 1]}
-      onPhotoClick={() => photos[pi + 1] ? null : openPhoto(pi + 1)}
-      onCaptionChange={(v) => setCaptions((c) => {const n = [...c];n[pi + 1] = v;return n;})}
-      onSecretClick={() => setMsgSlot(pi + 1)}
-      onDelete={() => {
-        const k = pi + 1;
-        setPhotos((p) => {const n = [...p];n[k] = null;return n;});
-        setCaptions((c) => {const n = [...c];n[k] = '';return n;});
-        setSecrets((s) => {const n = { ...s };delete n[k];return n;});
-      }}
-      hasSecret={!!secrets[pi + 1]}
-      pageNum={pi + 2} side="right" /> :
-
-
-
-    <LastPage side="right" onAdd={() => {addPageSlots();setTimeout(() => openBulk(), 50);}} />;
-
-
-    return <div className="spread">{left}{right}</div>;
+    return <div className="spread">
+      {renderSlot(pi, 'left')}
+      {renderSlot(pi+1, 'right')}
+    </div>;
   };
 
-  const enterClass = dir === 'right' ? 'slide-enter-right' : 'slide-enter-left';
+  const currentSecret = msgSlot ? photos.find(p => p.id === msgSlot) : null;
 
-  return (
-    <div className="scene">
-      <MarauderMap />
-      <Particles />
+  if (!loaded) {
+    return <div style={{color:'rgba(212,168,67,.6)',fontFamily:"'Cinzel',serif",fontSize:14,letterSpacing:2}}>
+      Cargando álbum...
+    </div>;
+  }
 
-      <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleFiles} />
+  return <div className="scene">
+    <MarauderMap/>
+    <Particles/>
+    <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={handleFiles}/>
 
-      {/* Book */}
-      <div className="book-wrap">
-        <div className="book">
-        {/* Days counter centered on spine */}
-        <div style={{
-            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-            zIndex: 40, display: 'flex', justifyContent: 'center'
-          }}>
-          <DaysCounter startDate={startD} />
+    <div className="book-wrap">
+      <div className="book">
+        <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',zIndex:40}}>
+          <DaysCounter startDate={meta.startD}/>
         </div>
-          <div className="spread" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
-            {renderSpread(spread)}
-          </div>
-          {transitioning &&
-          <div key={animKey} className={`flip-page ${dir === 'right' ? 'fwd' : 'back'}`}>
-              <div className={`flip-face ${dir === 'right' ? 'front-fwd' : 'front-back'}`} style={{ overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, height: '100%', width: '200%', display: 'flex', [dir === 'right' ? 'right' : 'left']: 0 }}>
-                  {renderSpread(prevSpread)}
-                </div>
-              </div>
-              <div className={`flip-face ${dir === 'right' ? 'back-fwd' : 'back-back'}`} style={{ overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, height: '100%', width: '200%', display: 'flex', [dir === 'right' ? 'left' : 'right']: 0 }}>
-                  {renderSpread(spread)}
-                </div>
+        <div className="spread" style={{position:'absolute',inset:0,zIndex:5}}>
+          {renderSpread(spread)}
+        </div>
+        {transitioning &&
+          <div key={animKey} className={`flip-page ${dir==='right'?'fwd':'back'}`}>
+            <div className={`flip-face ${dir==='right'?'front-fwd':'front-back'}`} style={{overflow:'hidden'}}>
+              <div style={{position:'absolute',top:0,height:'100%',width:'200%',display:'flex',[dir==='right'?'right':'left']:0}}>
+                {renderSpread(prevSpread)}
               </div>
             </div>
-          }
-        </div>
-      </div>
-
-      {/* Nav */}
-      <div className="nav-bar">
-        <button className="nav-btn" onClick={() => navigate(-1)} disabled={spread === 0 || transitioning}>‹</button>
-        <div className="page-indicator">
-          {spread === 0 ? '✦ Portada ✦' : `${spread} / ${totalSpreads - 1}`}
-        </div>
-        <button className="nav-btn" onClick={() => navigate(1)} disabled={spread >= totalSpreads - 1 || transitioning}>›</button>
-        <button className="upload-btn" onClick={openBulk}>
-          <span>📷</span> Subir fotos
-        </button>
-      </div>
-
-      {/* Hidden message overlay */}
-      {msgSlot !== null &&
-      <HiddenMessageOverlay
-        photoIndex={msgSlot}
-        message={secrets[msgSlot] || ''}
-        onSave={(txt) => setSecrets((s) => ({ ...s, [msgSlot]: txt }))}
-        onClose={() => setMsgSlot(null)} />
-
-      }
-
-      {/* Tweaks */}
-      <div className={`tweaks-panel${tweaksOpen ? ' open' : ''}`}>
-        <div className="tweaks-title">✦ Tweaks</div>
-        <div className="tweak-row">
-          <div className="tweak-lbl">Título</div>
-          <input className="tweak-inp" value={title} onChange={(e) => setTitle(e.target.value)} />
-        </div>
-        <div className="tweak-row">
-          <div className="tweak-lbl">Nombres</div>
-          <input className="tweak-inp" value={names} onChange={(e) => setNames(e.target.value)} />
-        </div>
-        <div className="tweak-row">
-          <div className="tweak-lbl">Fecha especial (portada)</div>
-          <input className="tweak-inp" value={date} onChange={(e) => setDate(e.target.value)} />
-        </div>
-        <div className="tweak-row">
-          <div className="tweak-lbl">Inicio relación (YYYY-MM-DD)</div>
-          <input className="tweak-inp" value={startD} onChange={(e) => setStartD(e.target.value)} placeholder="2024-02-14" />
-        </div>
-        <div className="tweak-row">
-          <div className="tweak-lbl">Páginas</div>
-          <div className="tweak-btn-row">
-            <button className="tweak-btn remove" onClick={() => {if (photos.length > 2) {setPhotos((p) => p.slice(0, -2));setCaptions((c) => c.slice(0, -2));}}}>− Quitar</button>
-            <button className="tweak-btn add" onClick={addPageSlots}>+ Añadir</button>
+            <div className={`flip-face ${dir==='right'?'back-fwd':'back-back'}`} style={{overflow:'hidden'}}>
+              <div style={{position:'absolute',top:0,height:'100%',width:'200%',display:'flex',[dir==='right'?'left':'right']:0}}>
+                {renderSpread(spread)}
+              </div>
+            </div>
           </div>
-        </div>
+        }
       </div>
-    </div>);
+    </div>
 
+    <div className="nav-bar">
+      <button className="nav-btn" onClick={()=>navigate(-1)} disabled={spread===0||transitioning}>‹</button>
+      <div className="page-indicator">{spread===0?'✦ Portada ✦':`${spread} / ${totalSpreads-1}`}</div>
+      <button className="nav-btn" onClick={()=>navigate(1)} disabled={spread>=totalSpreads-1||transitioning}>›</button>
+      <button className="upload-btn" onClick={openBulk}>📷 Subir fotos</button>
+    </div>
+
+    {msgSlot &&
+      <HiddenMessageOverlay
+        message={currentSecret?.secret || ''}
+        onSave={txt => updatePhoto(msgSlot, { secret: txt })}
+        onClose={() => setMsgSlot(null)}
+      />
+    }
+
+    <div className="status-pill">
+      <div className={`status-dot ${status==='loading'?'loading':status==='error'?'error':''}`}/>
+      {status==='loading'?'Sincronizando…':status==='error'?'Error de conexión':'En tiempo real ✦'}
+    </div>
+  </div>;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Album />);
+// ─── ROOT ───
+function Root() {
+  const [unlocked, setUnlocked] = useState(sessionStorage.getItem('album_unlocked') === '1');
+  if (!unlocked) return <Gate onUnlock={() => setUnlocked(true)}/>;
+  return <Album/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 </script>
+
 <style>
-  @keyframes floatY0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-  @keyframes floatY1 { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(4px)} }
+@keyframes floatY0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes floatY1 { 0%,100%{transform:translateY(-4px)} 50%{transform:translateY(4px)} }
 </style>
 </body>
 </html>
